@@ -115,6 +115,7 @@ void GLWidget::drawBlur() {
     glUseProgram(m_textureProgram);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, m_width, m_height);
+    m_blurFBO1->getColorAttachment(0).bind();
     m_quad->draw();
     //       [Task 11] Bind m_blurFBO2
 
