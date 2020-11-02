@@ -96,7 +96,7 @@ void GLWidget::paintGL() {
 
 void GLWidget::drawBlur() {
     // TODO: [Task 1] Do drawing here!
-    m_blurFBO1->bind();
+    m_blurFBO2->bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(m_phongProgram);
     GLint uniformLoc = glGetUniformLocation(m_phongProgram, "view");
@@ -104,7 +104,7 @@ void GLWidget::drawBlur() {
     uniformLoc = glGetUniformLocation(m_phongProgram, "projection");
     glUniformMatrix4fv(uniformLoc, 1, false, glm::value_ptr(m_projection));
     uniformLoc = glGetUniformLocation(m_phongProgram, "model");
-    glUniformMatrix4fv(uniformLoc, 1, false, glm::value_ptr(glm::mat4x4()));
+    glUniformMatrix4fv(uniformLoc, 1, false, glm::value_ptr(glm::translate(glm::vec3(0.f, 1.2f, 0.f))));
     glViewport(0, 0, m_width, m_height);
     m_sphere->draw();
     //       [Task 1.5] Call glViewport so that the viewport is the right size
@@ -142,8 +142,8 @@ void GLWidget::resizeGL(int w, int h) {
 
     // TODO: [Task 5] Initialize FBOs here, with dimensions m_width and m_height.
     //       [Task 12] Pass in TextureParameters::WRAP_METHOD::CLAMP_TO_EDGE as the last parameter
-    m_blurFBO1 = std::make_unique<FBO>(1, FBO::DEPTH_STENCIL_ATTACHMENT::DEPTH_ONLY, w, h);
-    m_blurFBO2 = std::make_unique<FBO>(1, FBO::DEPTH_STENCIL_ATTACHMENT::NONE, w, h);
+    m_blurFBO1 = std::make_unique<FBO>(1, FBO::DEPTH_STENCIL_ATTACHMENT::DEPTH_ONLY, w, h, TextureParameters::WRAP_METHOD::CLAMP_TO_EDGE);
+    m_blurFBO2 = std::make_unique<FBO>(1, FBO::DEPTH_STENCIL_ATTACHMENT::NONE, w, h, TextureParameters::WRAP_METHOD::CLAMP_TO_EDGE);
     rebuildMatrices();
 }
 
