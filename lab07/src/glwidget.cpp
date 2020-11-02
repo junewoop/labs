@@ -96,7 +96,7 @@ void GLWidget::paintGL() {
 
 void GLWidget::drawBlur() {
     // TODO: [Task 1] Do drawing here!
-    m_blurFBO2->bind();
+    m_blurFBO1->bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(m_phongProgram);
     GLint uniformLoc = glGetUniformLocation(m_phongProgram, "view");
