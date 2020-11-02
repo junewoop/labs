@@ -142,7 +142,7 @@ void GLWidget::resizeGL(int w, int h) {
 
     // TODO: [Task 5] Initialize FBOs here, with dimensions m_width and m_height.
     //       [Task 12] Pass in TextureParameters::WRAP_METHOD::CLAMP_TO_EDGE as the last parameter
-    m_blurFBO1 = std::make_unique<FBO>(1, FBO::DEPTH_STENCIL_ATTACHMENT::NONE, w, h);
+    m_blurFBO1 = std::make_unique<FBO>(1, FBO::DEPTH_STENCIL_ATTACHMENT::DEPTH_ONLY, w, h);
     rebuildMatrices();
 }
 

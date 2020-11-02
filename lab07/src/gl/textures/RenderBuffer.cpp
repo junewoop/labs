@@ -7,7 +7,8 @@ using namespace CS123::GL;
 RenderBuffer::RenderBuffer() :
     m_handle(0)
 {
-    // TODO [Task 8] Call glGenRenderbuffers
+    // TODO [Task 9] Call glGenRenderbuffers
+    glGenRenderbuffers(1, &m_handle);
 }
 
 RenderBuffer::RenderBuffer(RenderBuffer &&that) :
@@ -26,10 +27,12 @@ RenderBuffer& RenderBuffer::operator=(RenderBuffer &&that) {
 RenderBuffer::~RenderBuffer()
 {
     // TODO Don't forget to delete!
+    glDeleteRenderbuffers(1, &m_handle);
 }
 
 void RenderBuffer::bind() const {
-    // TODO [Task 8] Bind the renderbuffer
+    // TODO [Task 9] Bind the renderbuffer
+    glBindRenderbuffer(GL_RENDERBUFFER, m_handle);
 }
 
 unsigned int RenderBuffer::id() const {
@@ -38,4 +41,5 @@ unsigned int RenderBuffer::id() const {
 
 void RenderBuffer::unbind() const {
     // TODO Don't forget to unbind!
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
