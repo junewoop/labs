@@ -49,6 +49,7 @@ GLWidget::GLWidget(QGLFormat format, QWidget *parent, bool tab0)
 GLWidget::~GLWidget()
 {
     // TODO: Clean up GPU memory. (Task 15)
+    glDeleteTextures(1, &m_textureID);
 }
 
 
@@ -89,6 +90,7 @@ void GLWidget::initializeGLTransformationsVertexShaders() {
     m_square->buildVAO();
 
     // TODO: Enable depth testing. (Task 6)
+    glEnable(GL_DEPTH_TEST);
 }
 
 void GLWidget::initializeGLFragmentShaders() {
@@ -103,20 +105,31 @@ void GLWidget::initializeGLFragmentShaders() {
     // Smart pointer!
     m_square = std::make_unique<OpenGLShape>();
 
-    static constexpr int kFloatsPerVertex = 3;
+    static constexpr int kFloatsPerVertex = 8;
     std::vector<float> coordinates = {
         -0.5f,  0.5f,  0.0f,
+        1.0f, 0.0f, 0.0f,
+        0, 0,
         -0.5f, -0.5f,  0.0f,
+        0.0f, 1.0f, 0.0f,
+        0, 1,
          0.5f,  0.5f,  0.0f,
+        1.0f, 1.0f, 0.0f,
+        1, 0,
          0.5f, -0.5f,  0.0f,
+        0.0f, 0.0f, 1.0f,
+        1, 1
     };
     m_square->setVertexData(coordinates.data(),
                             coordinates.size(),
                             VBO::GEOMETRY_LAYOUT::LAYOUT_TRIANGLE_STRIP,
                             coordinates.size() / kFloatsPerVertex);
     m_square->setAttribute(ShaderAttrib::POSITION, 3, 0, VBOAttribMarker::DATA_TYPE::FLOAT, false);
+    m_square->setAttribute(ShaderAttrib::COLOR, 3, 3*sizeof(float), VBOAttribMarker::DATA_TYPE::FLOAT, false);
+    m_square->setAttribute(ShaderAttrib::TEXCOORD0, 2, 6*sizeof(float), VBOAttribMarker::DATA_TYPE::FLOAT, false);
 
     // TODO: Interleave positions and colors in the array used to intialize m_square (Task 10)
+
     // TODO: Don't forget to add the color attribute similar to how you did for the position (Task 10)
 
     // TODO: Interleave UV-coordinates along with positions and colors in your VBO (Task 14)
@@ -125,6 +138,11 @@ void GLWidget::initializeGLFragmentShaders() {
 
     // TODO: Initialize texture map.  Follow the handout for specific instructions. (Task 13)
     QImage image(":/images/ostrich.jpg");
+    glGenTextures(1, &m_textureID);
+    glBindTexture(GL_TEXTURE_2D, m_textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.bits());
 }
 
 void GLWidget::paintGLTransformationsVertexShaders() {
@@ -141,7 +159,7 @@ void GLWidget::paintGLTransformationsVertexShaders() {
         // TODO: Adjust the eye coordinates so the camera goes in a circle of radius 6 where
         // y is always equal to 1. (Task 7)
 
-        glm::vec3 eye = glm::vec3(0.f, 1.f, 6.f);        // Camera position.
+        glm::vec3 eye = glm::vec3(6.f*cos(time), 1.f, 6.f*sin(time));        // Camera position.
         glm::vec3 center = glm::vec3(0.f, 1.f, 0.f);     // Where camera is looking.
         glm::vec3 up = glm::vec3(0.f, 1.f, 0.f);         // Up direction.
 
@@ -153,20 +171,35 @@ void GLWidget::paintGLTransformationsVertexShaders() {
         // TODO: Use the equation to translate the ball. (Task 7)
 
         // TODO: Generate model matrix and pass it to vertex shader. (Task 3)
-
+        glm::mat4 trans_matrix = glm::translate(glm::vec3(0, 0.5 + fabs(sin(3* time)), 0));
+        GLint uniformloc = glGetUniformLocation(m_program, "model");
+        glUniformMatrix4fv(uniformloc, 1, GL_FALSE, glm::value_ptr(trans_matrix));
         // TODO: Generate view matrix and pass it to vertex shader. (Task 4)
-
+        glm::mat4 view_matrix = glm::lookAt(eye, center, up);
+        uniformloc = glGetUniformLocation(m_program, "view");
+        glUniformMatrix4fv(uniformloc, 1, GL_FALSE, glm::value_ptr(view_matrix));
         // TODO: Generate projection matrix and pass it to vertex shader. (Task 4)
-
+        glm::mat4 proj_matrix = glm::perspective(fieldOfViewY, aspectRatio, nearClipPlane, farClipPlane);
+        uniformloc = glGetUniformLocation(m_program, "perspective");
+        glUniformMatrix4fv(uniformloc, 1, GL_FALSE, glm::value_ptr(proj_matrix));
         // TODO: Draw sphere here! (Task 1)
+        m_sphere->draw();
 
         // TODO: Change color. (Task 5)
+        glUniform3f(glGetUniformLocation(m_program, "color"), 0.0, 0.5, 0.7);
+
 
         // TODO: Scale the square x2. (Task 7)
-
+        glm::mat4 scale_matrix = glm::scale(glm::vec3(2, 2, 2));
         // TODO: Rotate the square to lie flat on the XZ plane. (Task 7)
+        glm::mat4 rotate_matrix = glm::rotate(static_cast<float>(M_PI/2), glm::vec3(1, 0, 0));
+        uniformloc = glGetUniformLocation(m_program, "model");
+        glUniformMatrix4fv(uniformloc, 1, GL_FALSE, glm::value_ptr(rotate_matrix * scale_matrix));
+        trans_matrix = glm::translate(glm::vec3(0, 0.5 + fabs(sin(3*time)), 0));
+
 
         // TODO: Draw the square. (Task 5)
+        m_square->draw();
 
         glUseProgram(0);
 }
@@ -177,22 +210,29 @@ void GLWidget::paintGLFragmentShaders() {
     switch (settings.shaderProgram) {
         case SOLID_SHADER_PROGRAM:
             // TODO: Use m_solidProgramID as the program. (Task 8)
-
+            glUseProgram(m_solidProgramID);
             // TODO: Set the uniform's value to a color other than white. (Task 9)
+            glUniform3f(glGetUniformLocation(m_solidProgramID, "color"), 0.2, 0.5, 0.5);
 
             // TODO: Draw the square, and then unbind the program. (Task 8)
+            m_square->draw();
+            glUseProgram(0);
             break;
         case GRADIENT_SHADER_PROGRAM:
             // TODO: Draw the square using m_gradientProgramID. (Task 12)
-
+            glUseProgram(m_gradientProgramID);
+            m_square->draw();
+            glUseProgram(0);
             // TODO: Draw the square, and then unbind the program. (Task 12)
             break;
         case TEXTURE_SHADER_PROGRAM:
             // TODO: Use m_textureProgramID. (Task 15)
-
+            glUseProgram(m_textureProgramID);
             // TODO: Bind the texture. (Task 15)
-
+            glBindTexture(GL_TEXTURE_2D, m_textureID);
             // TODO: Draw the square and unbind the program. (Task 15)
+            m_square->draw();
+            glUseProgram(0);
             break;
     }
 

@@ -42,41 +42,58 @@ void GLWidget::initializeGL() {
     m_sphere = std::make_unique<OpenGLShape>();
 
     m_sphere->setVertexData(&sphereData[0], sphereData.size(), VBO::GEOMETRY_LAYOUT::LAYOUT_TRIANGLES, NUM_SPHERE_VERTICES);
+    ErrorChecker::printGLErrors("line 44");
     m_sphere->setAttribute(ShaderAttrib::POSITION, 3, 0, VBOAttribMarker::DATA_TYPE::FLOAT, false);
+    ErrorChecker::printGLErrors("line 46");
     m_sphere->setAttribute(ShaderAttrib::NORMAL, 3, 0, VBOAttribMarker::DATA_TYPE::FLOAT, true);
+    ErrorChecker::printGLErrors("line 48");
     m_sphere->buildVAO();
 }
 
 void GLWidget::paintGL() {
     // Clear the color and depth buffers.
-    glClear(GL_COLOR | GL_DEPTH_BUFFER_BIT);
+    //ErrorChecker::printGLErrors("line 56");
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 model(1.f);
+    ErrorChecker::printGLErrors("line 59");
+    glm::mat4 model(1.0f);
 
+    ErrorChecker::printGLErrors("line 62");
     glUseProgram(m_program);
 
     // Sets projection and view matrix uniforms.
+    ErrorChecker::printGLErrors("line 65");
     glUniformMatrix4fv(glGetUniformLocation(m_program, "projection"), 1, GL_FALSE, glm::value_ptr(m_projection));
+    ErrorChecker::printGLErrors("line 67");
     glUniformMatrix4fv(glGetUniformLocation(m_program, "view"), 1, GL_FALSE, glm::value_ptr(m_view));
 
     // Sets uniforms that are controlled by the UI.
+    ErrorChecker::printGLErrors("line 72");
     glUniform1f(glGetUniformLocation(m_program, "shininess"), settings.shininess);
+    ErrorChecker::printGLErrors("line 74");
     glUniform1f(glGetUniformLocation(m_program, "lightIntensity"), settings.lightIntensity);
+    ErrorChecker::printGLErrors("line 76");
     glUniform3f(glGetUniformLocation(m_program, "lightColor"),
                 settings.lightColor.redF(),
                 settings.lightColor.greenF(),
                 settings.lightColor.blueF());
+    ErrorChecker::printGLErrors("line 81");
     glUniform1f(glGetUniformLocation(m_program, "attQuadratic"), settings.attQuadratic);
+    ErrorChecker::printGLErrors("line 83");
     glUniform1f(glGetUniformLocation(m_program, "attLinear"), settings.attLinear);
+    ErrorChecker::printGLErrors("line 85");
     glUniform1f(glGetUniformLocation(m_program, "attConstant"), settings.attConstant);
+    ErrorChecker::printGLErrors("line 87");
     glUniform1f(glGetUniformLocation(m_program, "ambientIntensity"), settings.ambientIntensity);
+    ErrorChecker::printGLErrors("line 89");
     glUniform1f(glGetUniformLocation(m_program, "diffuseIntensity"), settings.diffuseIntensity);
+    ErrorChecker::printGLErrors("line 91");
     glUniform1f(glGetUniformLocation(m_program, "specularIntensity"), settings.specularIntensity);
 
-    glUseProgram(0);
+
 
     // Draws a sphere at the origin.
-    model = glm::mat4(1.f);
+    model = glm::mat4(1.0f);
     glUniformMatrix4fv(glGetUniformLocation(m_program, "model"), 1, GL_FALSE, glm::value_ptr(model));
     glUniform3f(glGetUniformLocation(m_program, "color"),
                 settings.sphereMColor.redF(),
@@ -86,7 +103,23 @@ void GLWidget::paintGL() {
     m_sphere->draw();
 
     // TODO: Draw two more spheres. (Task 2)
-
+    model = glm::translate(glm::vec3(-1.5, 0, 0));
+    glUniformMatrix4fv(glGetUniformLocation(m_program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    glUniform3f(glGetUniformLocation(m_program, "color"),
+                settings.sphereLColor.redF(),
+                settings.sphereLColor.greenF(),
+                settings.sphereLColor.blueF());
+    rebuildMatrices();
+    m_sphere->draw();
+    model = glm::translate(glm::vec3(1.5, 0, 0));
+    glUniformMatrix4fv(glGetUniformLocation(m_program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    glUniform3f(glGetUniformLocation(m_program, "color"),
+                settings.sphereRColor.redF(),
+                settings.sphereRColor.greenF(),
+                settings.sphereRColor.blueF());
+    rebuildMatrices();
+    m_sphere->draw();
+    glUseProgram(0);
 }
 
 void GLWidget::resizeGL(int w, int h) {

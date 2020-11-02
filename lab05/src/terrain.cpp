@@ -26,7 +26,71 @@ glm::vec3 Terrain::getPosition(int row, int col) {
     position.z = 10 * col/m_numCols - 5;
 
     // TODO: Adjust position.y using value noise.
+    float row_f = row/20.f;
+    float col_f = col/20.f;
+    int new_row = glm::floor(row_f);
+    int new_col = glm::floor(col_f);
+    int next_row = new_row+1;
+    int next_col = new_col+1;
+    if (next_row >= 5)
+        next_row = new_row;
+    if (next_col >= 5)
+        next_col = new_col;
+    float val_A = randValue(new_row, new_col);
+    float val_B = randValue(new_row, next_col);
+    float val_C = randValue(next_row, new_col);
+    float val_D = randValue(next_row, next_col);
+    float t_col = glm::fract(col_f);
+    float t_row = glm::fract(row_f);
+    t_col = 3*pow(t_col, 2) - 2*pow(t_col, 3);
+    t_row = 3*pow(t_row, 2) - 2*pow(t_row, 3);
+    position.y += glm::mix(glm::mix(val_A, val_B, t_col),
+                          glm::mix(val_C, val_D, t_col),
+                          t_row);
 
+    row_f = row/10.f;
+    col_f = col/10.f;
+    new_row = glm::floor(row_f);
+    new_col = glm::floor(col_f);
+    next_row = new_row+1;
+    next_col = new_col+1;
+    if (next_row >= 10)
+        next_row = new_row;
+    if (next_col >= 10)
+        next_col = new_col;
+    val_A = randValue(new_row, new_col);
+    val_B = randValue(new_row, next_col);
+    val_C = randValue(next_row, new_col);
+    val_D = randValue(next_row, next_col);
+    t_col = glm::fract(col_f);
+    t_row = glm::fract(row_f);
+    t_col = 3*pow(t_col, 2) - 2*pow(t_col, 3);
+    t_row = 3*pow(t_row, 2) - 2*pow(t_row, 3);
+    position.y += 0.5*glm::mix(glm::mix(val_A, val_B, t_col),
+                          glm::mix(val_C, val_D, t_col),
+                          t_row);
+
+    row_f = row/2.5f;
+    col_f = col/2.5f;
+    new_row = glm::floor(row_f);
+    new_col = glm::floor(col_f);
+    next_row = new_row+1;
+    next_col = new_col+1;
+    if (next_row >= 40)
+        next_row = new_row;
+    if (next_col >= 40)
+        next_col = new_col;
+    val_A = randValue(new_row, new_col);
+    val_B = randValue(new_row, next_col);
+    val_C = randValue(next_row, new_col);
+    val_D = randValue(next_row, next_col);
+    t_col = glm::fract(col_f);
+    t_row = glm::fract(row_f);
+    t_col = 3*pow(t_col, 2) - 2*pow(t_col, 3);
+    t_row = 3*pow(t_row, 2) - 2*pow(t_row, 3);
+    position.y += 0.25*glm::mix(glm::mix(val_A, val_B, t_col),
+                          glm::mix(val_C, val_D, t_col),
+                          t_row);
 
     return position;
 }
@@ -38,8 +102,28 @@ glm::vec3 Terrain::getPosition(int row, int col) {
 glm::vec3 Terrain::getNormal(int row, int col) {
     // TODO: Compute the normal at the given row and column using the positions of the
     //       neighboring vertices.
-
-    return glm::vec3(0, 1, 0);
+    if (row == 0 || row == 99 || col == 0 || col == 99)
+        return glm::vec3(0, 1, 0);
+    glm::vec3 normal = glm::vec3(0.0);
+    glm::vec3 tmp_normal;
+    glm::vec3 current = getPosition(row, col);
+    normal += glm::normalize(glm::cross(getPosition(row-1, col-1)-current,
+                                        getPosition(row-1, col)-current));
+    normal += glm::normalize(glm::cross(getPosition(row-1, col)-current,
+                                        getPosition(row-1, col+1)-current));
+    normal += glm::normalize(glm::cross(getPosition(row-1, col+1)-current,
+                                        getPosition(row, col+1)-current));
+    normal += glm::normalize(glm::cross(getPosition(row, col+1)-current,
+                                        getPosition(row+1, col+1)-current));
+    normal += glm::normalize(glm::cross(getPosition(row+1, col+1)-current,
+                                        getPosition(row+1, col)-current));
+    normal += glm::normalize(glm::cross(getPosition(row+1, col)-current,
+                                        getPosition(row+1, col-1)-current));
+    normal += glm::normalize(glm::cross(getPosition(row+1, col-1)-current,
+                                        getPosition(row, col-1)-current));
+    normal += glm::normalize(glm::cross(getPosition(row, col-1)-current,
+                                        getPosition(row-1, col-1)-current));
+    return glm::normalize(normal);
 }
 
 
@@ -48,7 +132,7 @@ glm::vec3 Terrain::getNormal(int row, int col) {
  */
 void Terrain::init() {
     // TODO: Change from GL_LINE to GL_FILL in order to render full triangles instead of wireframe.
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 
     // Initializes a grid of vertices using triangle strips.

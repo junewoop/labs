@@ -2,7 +2,7 @@
 
 unsigned char RGBAToGray(const RGBA &pixel) {
     // TODO: Task 5
-
+    return (299*pixel.r + 587*pixel.b + 114*pixel.g)/1000;
 }
 
 FilterGray::~FilterGray()
@@ -19,6 +19,7 @@ void FilterGray::apply(Canvas2D *canvas) {
 
     RGBA* data = canvas->data();
     size_t currentIndex = 0;
+    unsigned char tmp;
 
     for (int r = 0; r < canvas->height(); r++) {
         current_pixel = current_row;
@@ -26,11 +27,12 @@ void FilterGray::apply(Canvas2D *canvas) {
 
         for (int c = 0; c < canvas->width(); c++) {
             // TODO: Task 4
-
+            tmp = RGBAToGray(*current_pixel);
 
             // TODO: Task 6
-
-
+            current_pixel->r = tmp;
+            current_pixel->b = tmp;
+            current_pixel->g = tmp;
             /* Advance to the next pixel */
             current_pixel++;
             currentIndex++;

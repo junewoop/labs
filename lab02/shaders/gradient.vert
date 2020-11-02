@@ -1,13 +1,9 @@
 #version 400
 
 layout(location = 0) in vec3 position;
-// TODO: Add a new in variable for the color attribute (Task 11)
-
-// TODO: Declare a new out vec3 to send the color attribute (Task 12)
-
+layout(location = 2) in vec3 color;
+out vec3 colorattrib;
 void main() {
     gl_Position = vec4(position, 1.0);
-
-    // TODO: Set the output variable you created to a per-vertex
-    // color attribute (the incoming color). (Task 12)
+    colorattrib = color;
 }
