@@ -95,7 +95,7 @@ void GLWidget::paintGL() {
 }
 
 void GLWidget::drawBlur() {
-    // TODO: [Task 1] Do drawing here!
+    // Render Sphere using Phong Program
     m_blurFBO1->bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(m_phongProgram);
@@ -107,17 +107,23 @@ void GLWidget::drawBlur() {
     glUniformMatrix4fv(uniformLoc, 1, false, glm::value_ptr(glm::translate(glm::vec3(0.f, 1.2f, 0.f))));
     glViewport(0, 0, m_width, m_height);
     m_sphere->draw();
-    //       [Task 1.5] Call glViewport so that the viewport is the right size
-    //       [Task 5b] Bind m_blurFBO1
-    //       [Task 8] Bind m_blurFBO1's color texture
-    //       [Task 7] Unbind m_blurFBO1 and render a full screen quad
     m_blurFBO1->unbind();
-    glUseProgram(m_horizontalBlurProgram);
+
+    // Render Fullscreen Quad with Horizontal Blur Program
+    m_blurFBO2->bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(m_horizontalBlurProgram);
     glViewport(0, 0, m_width, m_height);
     m_blurFBO1->getColorAttachment(0).bind();
     m_quad->draw();
-    //       [Task 11] Bind m_blurFBO2
+    m_blurFBO2->unbind();
+
+    // Render Fullscreen Quad with Vertical Blur Program
+    m_blurFBO2->getColorAttachment(0).bind();
+    glUseProgram(m_verticalBlurProgram);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, m_width, m_height);
+    m_quad->draw();
 
 }
 
