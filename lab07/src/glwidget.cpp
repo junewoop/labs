@@ -112,7 +112,7 @@ void GLWidget::drawBlur() {
     //       [Task 8] Bind m_blurFBO1's color texture
     //       [Task 7] Unbind m_blurFBO1 and render a full screen quad
     m_blurFBO1->unbind();
-    glUseProgram(m_textureProgram);
+    glUseProgram(m_horizontalBlurProgram);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, m_width, m_height);
     m_blurFBO1->getColorAttachment(0).bind();
@@ -143,6 +143,7 @@ void GLWidget::resizeGL(int w, int h) {
     // TODO: [Task 5] Initialize FBOs here, with dimensions m_width and m_height.
     //       [Task 12] Pass in TextureParameters::WRAP_METHOD::CLAMP_TO_EDGE as the last parameter
     m_blurFBO1 = std::make_unique<FBO>(1, FBO::DEPTH_STENCIL_ATTACHMENT::DEPTH_ONLY, w, h);
+    m_blurFBO2 = std::make_unique<FBO>(1, FBO::DEPTH_STENCIL_ATTACHMENT::NONE, w, h);
     rebuildMatrices();
 }
 
