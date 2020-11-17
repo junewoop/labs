@@ -9,6 +9,8 @@ uniform int numParticles;
 in vec2 uv;
 
 // TODO [Task 15] setup the output locations
+layout(location = 0) out vec4 pos;
+layout(location = 1) out vec4 vel;
 
 const float PI = 3.14159;
 const float dt = 0.0167; // 1 sec/60 fps
@@ -53,7 +55,7 @@ vec4 updatePosition(int index) {
     // - sample prevPos and prevVel at uv
     // - xyz: pos + vel * dt
     // - w component is lifetime, so keep it from the previous position
-    return vec4(0,0,0,1);
+    return texture(prevPos, uv) + vec4(texture(prevVel, uv).xyz * dt, 0);
 }
 
 vec4 updateVelocity(int index) {
@@ -62,7 +64,7 @@ vec4 updateVelocity(int index) {
     // - sample prevVel at uv
     // - only force is gravity in y direction.  Add G * dt.
     // - w component is age, so add dt
-    return vec4(0);
+    return texture(prevVel, uv) + vec4(0, G * dt, 0, dt);
 }
 
 void main() {

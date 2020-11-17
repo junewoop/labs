@@ -73,7 +73,9 @@ void GLWidget::initializeGL() {
     // We will use this VAO to draw our particles' triangles.
     // It doesn't need any data associated with it, so we don't have to make a full VAO instance
     glGenVertexArrays(1, &m_particlesVAO);
-    // TODO [Task 13] Create m_particlesFBO1 and 2 with std::make_shared
+    // TODO [Task 13] Create m_particlesFBO1 an(d 2 with std::make_shared
+    m_particlesFBO1 = std::make_shared<FBO>(2, FBO::DEPTH_STENCIL_ATTACHMENT::NONE, m_numParticles, 1, TextureParameters::WRAP_METHOD::CLAMP_TO_EDGE, TextureParameters::FILTER_METHOD::NEAREST, GL_FLOAT);
+    m_particlesFBO2 = std::make_shared<FBO>(2, FBO::DEPTH_STENCIL_ATTACHMENT::NONE, m_numParticles, 1, TextureParameters::WRAP_METHOD::CLAMP_TO_EDGE, TextureParameters::FILTER_METHOD::NEAREST, GL_FLOAT);
 
     // Print the max FBO dimension.
     GLint maxRenderBufferSize;
@@ -133,9 +135,33 @@ void GLWidget::drawParticles() {
     float firstPass = m_firstPass ? 1.0f : 0.0f;
 
     // TODO [Task 14] Move the particles from prevFBO to nextFBO while updating them
-
+    nextFBO->bind();
+    glUseProgram(m_particleUpdateProgram);
+    glActiveTexture(GL_TEXTURE0);
+    prevFBO->getColorAttachment(0).bind();
+    glActiveTexture(GL_TEXTURE1);
+    prevFBO->getColorAttachment(1).bind();
+    glUniform1f(glGetUniformLocation(m_particleUpdateProgram, "firstPass"), firstPass);
+    glUniform1i(glGetUniformLocation(m_particleUpdateProgram, "numParticles"), m_numParticles);
+    glUniform1i(glGetUniformLocation(m_particleUpdateProgram, "prevPos"), 0);
+    glUniform1i(glGetUniformLocation(m_particleUpdateProgram, "prevVel"), 1);
+    m_quad->draw();
     // TODO [Task 17] Draw the particles from nextFBO
-
+    nextFBO->unbind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(m_particleDrawProgram);
+    setParticleViewport();
+    glActiveTexture(GL_TEXTURE0);
+    nextFBO->getColorAttachment(0).bind();
+    glActiveTexture(GL_TEXTURE1);
+    nextFBO->getColorAttachment(1).bind();
+    glUniform1i(glGetUniformLocation(m_particleDrawProgram, "pos"), 0);
+    glUniform1i(glGetUniformLocation(m_particleDrawProgram, "vel"), 1);
+    glUniform1i(glGetUniformLocation(m_particleDrawProgram, "numParticles"), m_numParticles);
+    glBindVertexArray(m_particlesVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3*m_numParticles);
+    glBindVertexArray(0);
+    glActiveTexture(GL_TEXTURE0);
     m_firstPass = false;
     m_evenPass = !m_evenPass;
 }

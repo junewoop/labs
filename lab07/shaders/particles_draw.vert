@@ -14,6 +14,7 @@ const vec4 TRI_VERTS[NUM_VERTICES_PER_PARTICLE] = vec4[NUM_VERTICES_PER_PARTICLE
     // vec4(p1.x, p1.y, 0, 0),
     // vec4(p2.x, p2.y, 0, 0),
     // vec4(p3.x, p3.y, 0, 0)
+    vec4(0, 2, 0, 0), vec4(0, 0, 0, 0), vec4(2, 0, 0, 0)
 );
 
 // Convert from HSL to RGB
@@ -72,17 +73,15 @@ vec3 pickRainbowColor(float x) {
 }
 
 void main() {
-    int particleID = 0;
-    int triID = 0;
+    int particleID = int(floor(gl_VertexID / 3));
+    int triID = int(mod(gl_VertexID, 3));
     // TODO [Task 18] Which particle and triangle vertex are we dealing with?
-
     // Pass the tex coords to the fragment shader
     uv = TRI_VERTS[triID].xy;
 
-    vec4 posTime = vec4(0,0,0,1);
-    vec4 velAge = vec4(0);
     // TODO [Task 18] sample pos and vel textures
-
+    vec4 posTime = texelFetch(pos, ivec2(particleID, 0), 0);
+    vec4 velAge = texelFetch(vel, ivec2(particleID, 0), 0);
     // Calculate diameter based on age and lifetime
     float diameter = 0.02;
     diameter *= min(min(1.0, velAge.w / (0.1 * posTime.w)),
